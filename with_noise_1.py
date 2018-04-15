@@ -2,7 +2,8 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-def update_belief(patterns,position,messages,belief,observation):
+def update_belief(patterns,position,messages,belief,observation,
+	w):
 	new_belief = [0]*len(belief)
 	norm = 0 
 	for pattern in range(0,len(patterns)):
@@ -17,9 +18,9 @@ def update_belief(patterns,position,messages,belief,observation):
 		# new_belief[pattern] = bel_bar*patterns[pattern][position]
 		# new_belief[pattern]= bel_bar
 		if observation == patterns[pattern][position]:
-			match_obs = 1
+			match_obs = 1 - w
 		else:
-			match_obs = 0
+			match_obs = w
 		new_belief[pattern]  = bel_bar*match_obs
 		print ('new_belief ' , new_belief)
 		norm += new_belief[pattern]
@@ -31,12 +32,12 @@ def update_belief(patterns,position,messages,belief,observation):
 if __name__ =='__main__':
 	# belief_final = []
 	patterns = [[1,0,1,1],[1,0,1,0],[0,1,1,0]]
-	observation = [1,0,1,1]
+	observation = [0,1,1,0]
 	
-	belief_final = np.array([[0.3,0.4,0.3],[0.3,0.4,0.3],
-	[0.3,0.4,0.3],[0.3,0.4,0.3]])
+	belief_final = np.array([[0.6,0.3,0.1],[0.4,0.3,0.3],
+	[0.4,0.3,0.3],[0.4,0.3,0.3]])
 	epoch = 10
-	# print (belief_final.shape)
+	w = 0.01	# print (belief_final.shape)
 	for ep in range(epoch):
 		for position in range(len(patterns[0])):
 			print ('\n\n ********##########************* \n\n')
@@ -46,23 +47,23 @@ if __name__ =='__main__':
 			messages= np.delete(belief_final,range(position*3,(position+1)*3)).reshape(3,3)
 			# print ('messages : ',messages)
 			belief_final[position] = update_belief(patterns , position , messages , 
-				belief, observation[position])
+				belief, observation[position],w)
 			# print (list(new_belief))
 			# belief_final.append(new_belief)
 
-	fig = plt.figure()
-	xs  = range(len(patterns)) #as there are 3 patterns
-	# print (xs)
-	ys  = belief_final
-	# print (ys)
-	ax = fig.add_subplot(111, projection='3d')
-	for c, z in zip(['r', 'g', 'b','y'], [3,2, 1, 0]):
-	    cs = [c] * len(xs)
-	    cs[0] = 'c'
-	    ax.bar(xs, ys[z], zs=z, zdir='y', color=cs, alpha=0.8)
+		fig = plt.figure()
+		xs  = range(len(patterns)) #as there are 3 patterns
+		# print (xs)
+		ys  = belief_final
+		# print (ys)
+		ax = fig.add_subplot(111, projection='3d')
+		for c, z in zip(['r', 'g', 'b','y'], [3,2, 1, 0]):
+		    cs = [c] * len(xs)
+		    cs[0] = 'c'
+		    ax.bar(xs, ys[z], zs=z, zdir='y', color=cs, alpha=0.8)
 
-	ax.set_xlabel('Pattern') 
-	ax.set_ylabel('Position')
-	ax.set_zlabel('belief')
+		ax.set_xlabel('Pattern') 
+		ax.set_ylabel('Position')
+		ax.set_zlabel('belief')
 
-	plt.show()
+		plt.show()
