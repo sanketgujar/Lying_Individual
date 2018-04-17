@@ -32,38 +32,50 @@ def update_belief(patterns,position,messages,belief,observation,
 if __name__ =='__main__':
 	# belief_final = []
 	patterns = [[1,0,1,1],[1,0,1,0],[0,1,1,0]]
-	observation = [0,1,1,0]
-	
-	belief_final = np.array([[0.6,0.3,0.1],[0.4,0.3,0.3],
-	[0.4,0.3,0.3],[0.4,0.3,0.3]])
+	correct_pattern = 2
+	observation = patterns[correct_pattern]
 	epoch = 10
-	w = 0.01	# print (belief_final.shape)
-	for ep in range(epoch):
-		for position in range(len(patterns[0])):
-			print ('\n\n ********##########************* \n\n')
-			print ('At position  : ' , position )
-			# position = 1
-			belief  = belief_final[position]
-			messages= np.delete(belief_final,range(position*3,(position+1)*3)).reshape(3,3)
-			# print ('messages : ',messages)
-			belief_final[position] = update_belief(patterns , position , messages , 
-				belief, observation[position],w)
-			# print (list(new_belief))
-			# belief_final.append(new_belief)
+	# w = 0.01	# print (belief_final.shape)
+	correct_value = []
+	lenght_of_noise = np.arange(0.,1.,0.01)
+	for w in lenght_of_noise:
+		belief_final = np.array([[0.333,0.333,0.333],[0.333,0.333,0.333],
+			[0.333,0.333,0.333],[0.333,0.333,0.333]])
+		correct_prediction = 0
+		for ep in range(epoch):
+			for position in range(len(patterns[0])):
+				print ('\n\n ********##########************* \n\n')
+				print ('At position  : ' , position )
+				# position = 1
+				belief  = belief_final[position]
+				messages= np.delete(belief_final,range(position*3,(position+1)*3)).reshape(3,3)
+				# print ('messages : ',messages)
+				belief_final[position] = update_belief(patterns , position , messages , 
+					belief, observation[position],w)
+				# print (list(new_belief))
+				# belief_final.append(new_belief)
+		for i in range(len(belief_final)):
+			if (np.argmax(belief_final[i]) == correct_pattern ):
+				correct_prediction += 1
+		correct_value.append(correct_prediction)
+	plt.plot(lenght_of_noise,correct_value,linewidth = 3.3)	
+	plt.grid()
+	plt.ylabel('No of correct predictions by robots')
+	plt.xlabel('noise')
+	plt.show()
+	# fig = plt.figure()	
+	# xs  = range(len(patterns)) #as there are 3 patterns
+	# # print (xs)
+	# ys  = belief_final
+	# # print (ys)
+	# ax = fig.add_subplot(111, projection='3d')
+	# for c, z in zip(['r', 'g', 'b','y'], [3,2, 1, 0]):
+	#     cs = [c] * len(xs)
+	#     cs[0] = 'c'
+	#     ax.bar(xs, ys[z], zs=z, zdir='y', color=cs, alpha=0.8)
 
-		fig = plt.figure()
-		xs  = range(len(patterns)) #as there are 3 patterns
-		# print (xs)
-		ys  = belief_final
-		# print (ys)
-		ax = fig.add_subplot(111, projection='3d')
-		for c, z in zip(['r', 'g', 'b','y'], [3,2, 1, 0]):
-		    cs = [c] * len(xs)
-		    cs[0] = 'c'
-		    ax.bar(xs, ys[z], zs=z, zdir='y', color=cs, alpha=0.8)
+	# ax.set_xlabel('Pattern') 
+	# ax.set_ylabel('Position')
+	# ax.set_zlabel('belief')
 
-		ax.set_xlabel('Pattern') 
-		ax.set_ylabel('Position')
-		ax.set_zlabel('belief')
-
-		plt.show()
+	# plt.show()

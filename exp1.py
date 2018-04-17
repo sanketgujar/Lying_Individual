@@ -31,7 +31,7 @@ def update_belief(patterns,position,messages,belief,observation):
 if __name__ =='__main__':
 	# belief_final = []
 	patterns = [[1,0,1,1],[1,0,1,0],[0,1,1,0]]
-	observation = [1,0,1,1]
+	observation = [0,1,1,0]
 	
 	belief_final = np.array([[0.3,0.4,0.3],[0.3,0.4,0.3],
 	[0.3,0.4,0.3],[0.3,0.4,0.3]])
