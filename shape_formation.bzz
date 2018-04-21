@@ -1,0 +1,174 @@
+include "include/string.bzz"
+include "include/vec2.bzz"
+
+template = {}
+n_temp = 3
+template[0] = "1100001111000011"
+template[1] = "1010010110100101"
+template[2] = "1110000110110101"
+
+
+#global var
+THRESHOLD  = 0.8
+PROB_NOISE = 0.2
+shiftX = 6.0 #global position shifting  
+shiftY = 6.0 #global position shifting
+belief = {}
+i = 0
+while(i < n_temp){
+	belief[i] = 1.0/n_temp	 #belief of the robot for template
+	i = i + 1
+}
+
+function create_vector(value, angle){
+ return {.x = value*math.cos(angle) , 
+				 .y = value*math.sin(angle)}
+}
+
+function sum_vector(vec1,vec2){
+	vec1.x = vec1.x + vec2.x
+	vec1.y = vec1.y + vec2.y
+	return vec1
+}
+
+function get_angle(vec){
+   return math.atan(vec.y, vec.x)
+}
+
+function get_value(vec){
+   return math.sqrt(vec.x*vec.x + vec.y*vec.y)
+}
+
+function obstacle_avoidance(){
+i = 0
+#for each sensor
+final_vec = create_vector(0.,0.)
+while (i<8){
+	value = proximity[i].value
+	angle = proximity[i].angle
+	vec   = create_vector(value,angle)
+ 	final_vec = sum_vector(final_vec , vec)
+#	log("Angle :" , angle ,  "Value :" , value)
+#	log("finale_vec" ,final_vec)
+	i = i + 1
+}
+#log("Value of the vector : " , get_value(final_vec))
+if ( get_value(final_vec) > THRESHOLD){
+	final_angle = get_angle(final_vec) 
+	gotoc( -final_vec.x*5. ,-final_vec.y*5.)
+	#log("final_angle" , final_angle)
+}
+else{
+	set_wheels(20.0,20.0)
+}
+}
+
+
+
+function checkTemplate(reading, final_pos_, pattern){
+  #match the sensor reading and the template (pattern)
+  #pattern --> int 
+	# return  1 if true else 0
+	
+	if (string.charat(template[pattern], final_pos_) == string.tostring(math.floor(reading)))
+		return 1 - PROB_NOISE;
+	else
+		return PROB_NOISE;
+}
+
+
+# Executed at init time
+function init() {
+
+}
+
+
+function update_belief(position, observation){
+	#updating belief at timestep t for individual robot
+	new_belief = {} #new bel
+	norm  = 0 #normalizing factor
+	patt = 0
+	
+	foreach(template, function(key,value){
+			#key --> index
+			#value --> template[index]
+			bel_bar = belief[key] 
+			
+			#recieve message from all the neighbours
+			neighbors.listen("belief_m",
+				function(value_id,value_1,robot_id) {
+					#value -->message
+					# log(value_1, ",", value_id)
+					bel_bar = bel_bar*value_1[key]
+				})
+		 
+
+			new_belief[key] = bel_bar*checkTemplate(observation,position,key)			
+	   	
+	})
+
+	#here we got the new_belief
+	length = 0
+	i = 0
+	while (i < n_temp){
+		length = length + new_belief[i]
+		i = i + 1
+	}
+
+	i = 0
+	while (i< n_temp){
+		belief[i] = new_belief[i]/length
+		log(belief[i])
+		i = i+1
+	}
+  
+} 
+
+function project_belief(){
+	max_id = 0
+	i = 0
+	while(i < n_temp){
+		if(belief[i] > belief[max_id]){
+			max_id = i
+		}
+    i = i +1 
+	}
+	if(max_id == 0){
+		set_leds(255,0,0)
+	}
+	if(max_id == 1){
+		set_leds(0,255,0)
+	}
+	if(max_id == 2){
+		set_leds(0,0,255)
+	}
+}
+
+function main() {
+	obstacle_avoidance() #obstacle avoidance
+	log('belief ' ,belief)
+	neighbors.broadcast("belief_m",belief)
+	reading = ground[0].value
+	posX = math.floor(pose.position.x+shiftX)%4   #x -tile  
+	posY = math.floor(-pose.position.y+shiftY)%4  #y -tile 
+	final_pos = 4*posX + posY #int (0-16)
+	update_belief(final_pos , reading)	
+# log(checkTemplate(reading, final_pos , temp_check))
+}
+
+
+# Executed every time step
+function step(){
+main()
+project_belief()
+}
+
+function reset() {
+} 
+# Execute at exit
+function destroy() {
+}
+
+
+
+ 
