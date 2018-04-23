@@ -9,7 +9,7 @@ template[2] = "1110000110110101"
 
 
 #global var
-THRESHOLD  = 0.8
+THRESHOLD  = 0.7
 PROB_NOISE = 0.2
 shiftX = 6.0 #global position shifting  
 shiftY = 6.0 #global position shifting
@@ -55,11 +55,11 @@ while (i<8){
 #log("Value of the vector : " , get_value(final_vec))
 if ( get_value(final_vec) > THRESHOLD){
 	final_angle = get_angle(final_vec) 
-	gotoc( -final_vec.x*5. ,-final_vec.y*5.)
+	gotoc( -final_vec.x*10. ,-final_vec.y*10.)
 	#log("final_angle" , final_angle)
 }
 else{
-	set_wheels(20.0,20.0)
+	set_wheels(30.0,30.0)
 }
 }
 
@@ -118,7 +118,7 @@ function update_belief(position, observation){
 	i = 0
 	while (i< n_temp){
 		belief[i] = new_belief[i]/length
-		log(belief[i])
+		#log(belief[i])
 		i = i+1
 	}
   
@@ -144,9 +144,19 @@ function project_belief(){
 	}
 }
 
+# function project_belief(){
+# 	i = 0
+# 	led_color = {}
+# 	while(i<n_temp){
+# 		led_color[i] = int(belief[i]*255)
+# 		i = i + 1
+# 	}
+# 	set_leds(led_color[0],led_color[1],led_color[2])
+# }
+
 function main() {
 	obstacle_avoidance() #obstacle avoidance
-	log('belief ' ,belief)
+	#log('belief ' ,belief)
 	neighbors.broadcast("belief_m",belief)
 	reading = ground[0].value
 	posX = math.floor(pose.position.x+shiftX)%4   #x -tile  
